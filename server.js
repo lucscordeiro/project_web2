@@ -1,63 +1,27 @@
 const express = require("express");
-const ejsLayouts = require("express-ejs-layouts"); 
 const app = express();
+const ejsLayouts = require("express-ejs-layouts");
+const path = require("path");
 const port = 3000;
 
-// JSON
-let users = [];
+// Frontend
+app.set("view engine", "ejs"); // renderizador EJS
+app.set("views", path.join(__dirname, "views")); // HTMLs
+app.use(ejsLayouts); // layout mestre
+app.set("layout", "layout"); // layout.ejs padrão
 
-try {
-  users = require("./users.json");
-} catch (e) {
-  console.warn("Não foi possível carregar ./users.json. Iniciando com array vazio.");
-}
+// Estáticos e Leitura de Dados
+app.use(express.static(path.join(__dirname, "public"))); // CSS/Imagens
+app.use(express.json()); // JSON
+app.use(express.urlencoded({ extended: true })); // formulários HTML
 
-// Express
-app.set("view engine", "ejs");
-app.set("views", "./views");
-app.use(ejsLayouts); 
-app.set("layout", "layout"); // layout padrão
+// Rotas MVC
+const authRoutes = require('./routes/authRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 
-app.use(express.static("public"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use('/', authRoutes);   // Login/Cadastro
+app.use('/', courseRoutes); // Cursos
 
-// Rota principal - index.ejs
-app.get("/", (req, res) => {
-  res.render("index", {
-    title: "Página Inicial",
-  });
-});
-
-// login - index.ejs
-app.get("/login", (req, res) => {
-  res.render("login", {
-    title: "Login",
-  });
-});
-
-// login.ejs
-app.post("/login", (req, res) => {
-  const user = users.find(
-    (u) => u.email === req.body.email && u.password === req.body.password
-  );
-  if (user) {
-    // sessions - usuário logado
-    res.redirect("/home");
-  } else {
-    res.redirect("/login?erro=1");
-  }
-});
-
-// Página Home após login
-app.get("/home", (req, res) => {
-  res.render("home", {
-    title: "Página Inicial",
-  });
-});
-
-
-// Inicia o servidor
 app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
 });

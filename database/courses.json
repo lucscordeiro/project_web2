@@ -1,0 +1,39 @@
+[
+  {
+    "id": "1",
+    "nome": "Lógica de Programação",
+    "descricao": "Conceitos básicos para iniciantes",
+    "status": "Inscrições Abertas",
+    "conteudos": [
+      {
+        "id": "361d3dde-589f-4a8b-a368-866c757413b3",
+        "titulo": "Aula 1",
+        "categoria": "Aula",
+        "formato": "Chamada Online",
+        "link": "https://meet.google.com/bnk-jfmg-mzr"
+      }
+    ]
+  },
+  {
+    "id": "4f77160b-2065-4944-a994-8de78252719c",
+    "nome": "Introdução ao Python",
+    "descricao": "Conceitos básicos",
+    "status": "Inscrições Abertas",
+    "conteudos": [
+      {
+        "id": "f811704a-cfb4-47fd-b3e7-9b981d93b17a",
+        "titulo": "Aula 1",
+        "categoria": "Aula",
+        "formato": "Chamada Online",
+        "link": "https://meet.google.com/xbr-fqzu-kqt"
+      },
+      {
+        "id": "e9aa2573-bc94-4d77-8c7f-76bce6d605f1",
+        "titulo": "Aula 2",
+        "categoria": "Aula",
+        "formato": "Vídeo",
+        "link": "https://www.youtube.com/watch?v=S9uPNppGsGo&list=PLHz_AreHm4dlKP6QQCekuIPky1CiwmdI6&index=1"
+      }
+    ]
+  }
+]

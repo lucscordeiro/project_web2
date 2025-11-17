@@ -1,25 +1,19 @@
 {
-  "name": "project_web2",
+  "name": "17-11-25",
   "version": "1.0.0",
-  "description": "",
-  "homepage": "https://github.com/lucscordeiro/project_web2#readme",
-  "bugs": {
-    "url": "https://github.com/lucscordeiro/project_web2/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lucscordeiro/project_web2.git"
-  },
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "express-ejs-layouts": "^2.5.1"
+    "express-ejs-layouts": "^2.5.1",
+    "uuid": "^9.0.1"
   }
 }

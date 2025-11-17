@@ -1,0 +1,53 @@
+<h2 class="mb-4">Meus Cursos</h2>
+
+<div class="card shadow">
+    <div class="card-body">
+        <a href="/cursos/novo" class="btn btn-success mb-3">
+            <i class="bi bi-plus-circle"></i> Criar Novo Curso
+        </a>
+
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% courses.forEach(curso => { %>
+                <tr>
+                    <td style="width: 60%;">
+                        <strong><%= curso.nome %></strong><br>
+                        <small class="text-muted"><%= curso.descricao %></small><br>
+                        <small class="badge badge-light border">
+                            <%= curso.conteudos ? curso.conteudos.length : 0 %> Itens
+                        </small>
+                    </td>
+                    <td>
+                        <% 
+                           let badgeClass = 'secondary';
+                           if(curso.status === 'Em Andamento') badgeClass = 'primary';
+                           if(curso.status === 'Inscrições Abertas') badgeClass = 'success';
+                           if(curso.status === 'Finalizado') badgeClass = 'dark';
+                           if(curso.status === 'Pausado') badgeClass = 'warning';
+                        %>
+                        <span class="badge badge-<%= badgeClass %>"><%= curso.status %></span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="/cursos/editar/<%= curso.id %>" class="btn btn-sm btn-info">
+                                <i class="bi bi-pencil-square"></i> Gerenciar Conteúdo
+                            </a>
+                            
+                            <form action="/cursos/excluir/<%= curso.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Isso apagará o curso e todas as aulas dentro dele. Tem certeza?');">
+                                <button type="submit" class="btn btn-sm btn-danger ml-1">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>

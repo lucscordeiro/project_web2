@@ -1,0 +1,128 @@
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 text-white">Gerenciar: <%= course.nome %></h4>
+        <a href="/cursos" class="btn btn-sm btn-light">Voltar</a>
+    </div>
+    <div class="card-body bg-light">
+        <form action="/cursos/editar/<%= course.id %>" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Nome do Curso</label>
+                    <input type="text" name="nome" class="form-control" value="<%= course.nome %>" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Status</label>
+                    <select name="status" class="form-control" required>
+                        <option value="Inscrições Abertas" <%= course.status == 'Inscrições Abertas' ? 'selected' : '' %>>Inscrições Abertas</option>
+                        <option value="Em Andamento" <%= course.status == 'Em Andamento' ? 'selected' : '' %>>Em Andamento</option>
+                        <option value="Finalizado" <%= course.status == 'Finalizado' ? 'selected' : '' %>>Finalizado</option>
+                        <option value="Pausado" <%= course.status == 'Pausado' ? 'selected' : '' %>>Pausado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <input type="text" name="descricao" class="form-control" value="<%= course.descricao %>">
+            </div>
+            <button type="submit" class="btn btn-info btn-sm">Salvar Alterações do Curso</button>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Conteúdos do Curso</h5>
+        <button class="btn btn-success" type="button" data-toggle="collapse" data-target="#formAdicionar">
+            <i class="bi bi-plus-lg"></i> Adicionar Novo Item
+        </button>
+    </div>
+
+    <div class="collapse p-3 bg-light border-bottom" id="formAdicionar">
+        <h6 class="text-muted">Novo Item</h6>
+        
+        <form action="/cursos/<%= course.id %>/conteudos" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label>Título</label>
+                    <input type="text" name="titulo" class="form-control" placeholder="Ex: Aula 1..." required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Categoria</label>
+                    <select name="categoria" id="categoriaSelect" class="form-control" required onchange="atualizarFormatos()">
+                        <option value="">Selecione...</option>
+                        <option value="Aula">Aula</option>
+                        <option value="Avaliação">Avaliação</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Formato</label>
+                    <select name="formato" id="formatoSelect" class="form-control" required>
+                        <option value="">Selecione a categoria...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Link</label>
+                <input type="url" name="link" class="form-control" placeholder="https://...">
+            </div>
+            <button type="submit" class="btn btn-success">Adicionar Item à Lista</button>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <% if (!course.conteudos || course.conteudos.length === 0) { %>
+            <div class="alert alert-warning m-3 text-center">
+                Nenhuma aula cadastrada. Clique no botão acima para começar!
+            </div>
+        <% } else { %>
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Link</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% course.conteudos.forEach(item => { %>
+                    <tr>
+                        <td><%= item.titulo %></td>
+                        <td>
+                            <span class="badge badge-secondary"><%= item.categoria %></span>
+                            <small class="ml-1"><%= item.formato %></small>
+                        </td>
+                        <td>
+                            <a href="<%= item.link %>" target="_blank" class="small">Acessar</a>
+                        </td>
+                        <td>
+                            <form action="/cursos/<%= course.id %>/conteudos/<%= item.id %>/delete" method="POST" onsubmit="return confirm('Remover?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+</div>
+
+<script>
+    function atualizarFormatos() {
+        const categoria = document.getElementById("categoriaSelect").value;
+        const formatoSelect = document.getElementById("formatoSelect");
+        formatoSelect.innerHTML = "";
+        
+        let opcoes = [];
+        if (categoria === "Aula") opcoes = ["Chamada Online", "Vídeo", "Arquivo PDF", "Link Externo"];
+        else if (categoria === "Avaliação") opcoes = ["Formulário (Quiz)", "Texto Escrito (PDF)", "Print da Tela"];
+        else opcoes = ["Selecione a categoria..."];
+
+        opcoes.forEach(op => {
+            let el = document.createElement("option");
+            el.text = op; el.value = op;
+            formatoSelect.add(el);
+        });
+    }
+</script>
