@@ -10,37 +10,42 @@
             <thead class="thead-dark">
                 <tr>
                     <th>Nome</th>
+                    <th>Itens</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
+                <% if (courses.length === 0) { %>
+                    <tr><td colspan="4" class="text-center text-muted">Nenhum curso ativo encontrado.</td></tr>
+                <% } %>
                 <% courses.forEach(curso => { %>
                 <tr>
-                    <td style="width: 60%;">
+                    <td style="width: 50%;">
                         <strong><%= curso.nome %></strong><br>
-                        <small class="text-muted"><%= curso.descricao %></small><br>
-                        <small class="badge badge-light border">
-                            <%= curso.conteudos ? curso.conteudos.length : 0 %> Itens
-                        </small>
+                        <small class="text-muted"><%= curso.descricao %></small>
+                    </td>
+                    <td>
+                        <small class="badge badge-light border"><%= curso.conteudosCount %> Conteúdos</small>
                     </td>
                     <td>
                         <% 
-                           let badgeClass = 'secondary';
-                           if(curso.status === 'Em Andamento') badgeClass = 'primary';
-                           if(curso.status === 'Inscrições Abertas') badgeClass = 'success';
-                           if(curso.status === 'Finalizado') badgeClass = 'dark';
-                           if(curso.status === 'Pausado') badgeClass = 'warning';
+                            let badgeClass = 'secondary';
+                            if(curso.status === 'Em Andamento') badgeClass = 'primary';
+                            if(curso.status === 'Inscrições Abertas') badgeClass = 'success';
+                            if(curso.status === 'Finalizado') badgeClass = 'dark';
+                            if(curso.status === 'Pausado') badgeClass = 'warning';
                         %>
                         <span class="badge badge-<%= badgeClass %>"><%= curso.status %></span>
                     </td>
                     <td>
                         <div class="btn-group">
                             <a href="/cursos/editar/<%= curso.id %>" class="btn btn-sm btn-info">
-                                <i class="bi bi-pencil-square"></i> Gerenciar Conteúdo
+                                <i class="bi bi-pencil-square"></i> Gerenciar
                             </a>
                             
-                            <form action="/cursos/excluir/<%= curso.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Isso apagará o curso e todas as aulas dentro dele. Tem certeza?');">
+                            <form action="/cursos/excluir/<%= curso.id %>" method="POST" style="display:inline;" onsubmit="return confirm('ATENÇÃO: Isso moverá o curso e seus conteúdos para o histórico. Tem certeza?');">
+                                <!-- BOTÃO ALTERADO AQUI: Removido (Soft Delete) e mudado para "Excluir" -->
                                 <button type="submit" class="btn btn-sm btn-danger ml-1">Excluir</button>
                             </form>
                         </div>

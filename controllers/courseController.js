@@ -1,137 +1,126 @@
-const fs = require('fs');
-const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-
-const coursesPath = path.join(__dirname, '../database/courses.json');
-
-const getCourses = () => {
-    if (!fs.existsSync(coursesPath)) return [];
-    return JSON.parse(fs.readFileSync(coursesPath, 'utf-8') || '[]');
-};
-
-const saveCourses = (data) => {
-    fs.writeFileSync(coursesPath, JSON.stringify(data, null, 2));
-};
+const { Op } = require('sequelize');
+const Course = require('../models/Course'); 
+const Content = require('../models/Content'); 
+const Student = require('../models/Student');
+const Enrollment = require('../models/Enrollment');
+const User = require('../models/User');
 
 const courseController = {
-    home: (req, res) => {
-        res.render('home', { title: 'Tela Inicial' });
-    },
 
-    index: (req, res) => {
-        const courses = getCourses();
-        res.render('courses/index', { courses, title: 'Meus Cursos' });
-    },
+    // FUNÇÃO SIMPLIFICADA: APENAS RENDERIZA A VIEW HOME
+    home: (req, res) => {
+        res.render('home', { title: 'Dashboard Professor' });
+    },
 
-    create: (req, res) => {
-        res.render('courses/create', { title: 'Novo Curso' });
-    },
+    // R - READ (INDEX) - APENAS CURSOS ATIVOS DO PROFESSOR LOGADO
+    index: async (req, res) => { 
+        const professorId = req.session.user.id;
+        const courses = await Course.findAll({
+             // CORRIGIDO: Filtra por deletado E pelo dono (UserId)
+             where: { deletedAt: null, UserId: professorId }, 
+             include: [{ model: Content, as: 'conteudos', attributes: ['id'] }]
+        });
+        const formattedCourses = courses.map(course => ({
+            ...course.toJSON(), 
+            conteudosCount: course.conteudos ? course.conteudos.length : 0 
+        }));
+        res.render('courses/index', { courses: formattedCourses, title: 'Meus Cursos' });
+    },
 
-    // Criar Curso (Container)
-    store: (req, res) => {
-        const { nome, descricao, status } = req.body;
-        const courses = getCourses();
+    create: (req, res) => { res.render('courses/create', { title: 'Novo Curso' }); },
+    
+    // C - CREATE (STORE)
+    store: async (req, res) => { 
+        const { nome, descricao, status } = req.body;
+        try {
+            const newCourse = await Course.create({ 
+                nome, 
+                descricao, 
+                status,
+                UserId: req.session.user.id // Associa o curso ao ID do professor na sessão
+            });
+            req.flash('success', `Curso "${nome}" criado! Adicione os conteúdos.`);
+            res.redirect(`/cursos/editar/${newCourse.id}`);
+        } catch (error) {
+            console.error("Erro ao criar curso:", error);
+            req.flash('error', 'Erro ao criar curso. Verifique os dados.');
+            res.redirect('/cursos/novo');
+        }
+    },
 
-        const newCourse = {
-            id: uuidv4(),
-            nome,
-            descricao,
-            status,
-            conteudos: [] // Array vazio obrigatório
-        };
+    // R - READ (EDIT FORM) - APENAS CONTEÚDO ATIVO
+    edit: async (req, res) => {
+        const { id } = req.params;
+        
+        const course = await Course.findByPk(id, {
+            include: [
+                // CORRIGIDO: Filtra APENAS conteúdo ATIVO (deletedAt: null)
+                { model: Content, as: 'conteudos', where: { deletedAt: null }, required: false }, 
+                { 
+                    model: Student, 
+                    as: 'students', 
+                    attributes: ['id', 'nome', 'email'],
+                    through: { where: { deletedAt: null }, attributes: [] } 
+                }
+            ]
+        });
+        
+        // Verificação de Propriedade (Requisito de Segurança)
+        if (!course || (course.UserId !== req.session.user.id && req.session.user.tipo !== 'gestao')) {
+             req.flash('error', 'Acesso negado. Você não é o proprietário deste curso.');
+             return res.redirect('/cursos');
+        }
 
-        courses.push(newCourse);
-        saveCourses(courses);
-        // Vai direto para a edição para adicionar aulas
-        res.redirect(`/cursos/editar/${newCourse.id}`);
-    },
+        res.render('courses/edit', { course: course.toJSON(), title: 'Gerenciar Curso' });
+    },
 
-    // Editar Curso
-    edit: (req, res) => {
-        const { id } = req.params;
-        const courses = getCourses();
-        // CORREÇÃO: Converte para String para achar tanto ID "1" quanto UUID
-        const course = courses.find(c => String(c.id) === String(id));
-        
-        if (!course) return res.redirect('/cursos');
+    // U - UPDATE
+    update: async (req, res) => { 
+        const { id } = req.params;
+        const { nome, descricao, status } = req.body;
 
-        // Garante que o array existe
-        if (!course.conteudos) course.conteudos = [];
-        
-        res.render('courses/edit', { course, title: 'Gerenciar Curso' });
-    },
+        // Adicionar verificação de propriedade aqui também
+        const course = await Course.findByPk(id);
+        if (!course || (course.UserId !== req.session.user.id && req.session.user.tipo !== 'gestao')) {
+             req.flash('error', 'Acesso negado. Você não é o proprietário deste curso.');
+             return res.redirect('/cursos');
+        }
 
-    update: (req, res) => {
-        const { id } = req.params;
-        const { nome, descricao, status } = req.body;
-        let courses = getCourses();
+        try {
+            await Course.update({ nome, descricao, status }, { where: { id: id } });
+            req.flash('success', `Curso "${nome}" atualizado com sucesso.`);
+            res.redirect('/cursos');
+        } catch (error) {
+            req.flash('error', 'Erro ao atualizar curso.');
+            res.redirect(`/cursos/editar/${id}`);
+        }
+    },
 
-        const index = courses.findIndex(c => String(c.id) === String(id));
-        if (index !== -1) {
-            const existingContents = courses[index].conteudos || [];
-            courses[index] = { 
-                id: courses[index].id, // Mantém o ID original (número ou string)
-                nome, 
-                descricao, 
-                status, 
-                conteudos: existingContents 
-            };
-            saveCourses(courses);
-        }
-        res.redirect('/cursos');
-    },
+    // D - DELETE (SOFT DELETE)
+    delete: async (req, res) => { 
+        const { id } = req.params;
+        await Course.destroy({ where: { id: id } });
+        req.flash('success', 'Curso excluído com sucesso! (Movido para o histórico)');
+        res.redirect('/cursos');
+    },
 
-    delete: (req, res) => {
-        const { id } = req.params;
-        let courses = getCourses();
-        courses = courses.filter(c => String(c.id) !== String(id));
-        saveCourses(courses);
-        res.redirect('/cursos');
-    },
+    // Conteúdo (Soft Delete)
+    storeContent: async (req, res) => { 
+        const { id: courseId } = req.params;
+        const { titulo, categoria, formato, link } = req.body; 
+        
+        await Content.create({ titulo, categoria, formato, link, courseId });
+        req.flash('success', `Conteúdo "${titulo}" adicionado ao curso.`);
+        res.redirect(`/cursos/editar/${courseId}`);
+    },
 
-    // --- LÓGICA DE CONTEÚDO ---
-
-    storeContent: (req, res) => {
-        const { id } = req.params;
-        const { titulo, categoria, formato, link } = req.body;
-        let courses = getCourses();
-        
-        // CORREÇÃO: Busca robusta de ID
-        const courseIndex = courses.findIndex(c => String(c.id) === String(id));
-
-        if (courseIndex !== -1) {
-            const newContent = {
-                id: uuidv4(),
-                titulo,
-                categoria,
-                formato,
-                link
-            };
-            
-            if (!courses[courseIndex].conteudos) courses[courseIndex].conteudos = [];
-            
-            courses[courseIndex].conteudos.push(newContent);
-            saveCourses(courses);
-            
-            // Sucesso: volta para a página
-            return res.redirect(`/cursos/editar/${id}`);
-        } 
-        
-        console.log("Erro: Curso não encontrado para ID", id);
-        res.redirect('/cursos');
-    },
-
-    deleteContent: (req, res) => {
-        const { id, contentId } = req.params;
-        let courses = getCourses();
-        const courseIndex = courses.findIndex(c => String(c.id) === String(id));
-
-        if (courseIndex !== -1 && courses[courseIndex].conteudos) {
-            courses[courseIndex].conteudos = courses[courseIndex].conteudos.filter(item => item.id !== contentId);
-            saveCourses(courses);
-        }
-        res.redirect(`/cursos/editar/${id}`);
-    }
+    deleteContent: async (req, res) => { 
+        const { id: courseId, contentId } = req.params;
+        await Content.destroy({ where: { id: contentId } });
+        req.flash('success', 'Conteúdo removido com sucesso.');
+        res.redirect(`/cursos/editar/${courseId}`);
+    }
 };
 
 module.exports = courseController;

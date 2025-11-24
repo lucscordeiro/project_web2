@@ -1,0 +1,29 @@
+<h2>Aulas e Materiais: <%= course.nome %></h2>
+<p class="text-muted">Status: <span class="badge badge-primary"><%= course.status %></span></p>
+
+<div class="list-group">
+    <% if (!course.conteudos || course.conteudos.length === 0) { %>
+        <div class="alert alert-warning text-center">Nenhum conteúdo disponível ainda.</div>
+    <% } %>
+    <% course.conteudos.forEach(item => { %>
+        <% if (!item.deletedAt) { %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong class="text-primary"><%= item.titulo %></strong>
+                <span class="badge badge-secondary ml-2"><%= item.categoria %></span>
+                <small class="ml-2 text-muted">(<%= item.formato %>)</small>
+            </div>
+            
+            <% if (item.link) { %>
+                <a href="<%= item.link %>" target="_blank" class="btn btn-sm btn-outline-success">
+                    Acessar Material <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+            <% } else { %>
+                <span class="text-danger">Link indisponível</span>
+            <% } %>
+        </li>
+        <% } %>
+    <% }); %>
+</div>
+
+<a href="/aluno/dashboard" class="btn btn-secondary mt-3">Voltar aos Cursos</a>

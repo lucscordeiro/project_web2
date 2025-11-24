@@ -1,0 +1,41 @@
+<h2>Dashboard do Aluno</h2>
+<p class="text-muted">Seu Status: <%= user.nome %> | Você pode se matricular em vários cursos.</p>
+
+<div class="row mt-4">
+    <% if (courses.length === 0) { %>
+        <div class="col-12"><div class="alert alert-info text-center">Nenhum curso disponível no momento.</div></div>
+    <% } %>
+    <% courses.forEach(course => { %>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title"><%= course.nome %></h5>
+                <p class="card-text small text-muted"><%= course.descricao %></p>
+                <hr>
+                
+                <% if (course.isMatriculated) { %>
+                    <span class="badge badge-success mb-2"><i class="bi bi-check-circle-fill"></i> MATRICULADO</span>
+                    <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-primary ml-2">Ver Conteúdo</a>
+                    
+                    <form action="/aluno/desmatricular/<%= course.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja se desmatricular de <%= course.nome %>?');">
+                        <button type="submit" class="btn btn-sm btn-warning ml-2">Desmatricular</button>
+                    </form>
+                <% } else if (course.isUnenrolled) { %>
+                                        <span class="badge badge-danger mb-2"><i class="bi bi-x-circle-fill"></i> DESMATRICULADO</span>
+                    
+                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-info ml-2">Re-matricular</button>
+                    </form>
+                <% } else if (course.status === 'Inscrições Abertas') { %>
+                                        <span class="badge badge-info mb-2">Inscrições Abertas</span>
+                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-success ml-2">Matricular-se Agora</button>
+                    </form>
+                <% } else { %>
+                                        <span class="badge badge-secondary mb-2">Status: <%= course.status %></span>
+                <% } %>
+            </div>
+        </div>
+     </div>
+    <% }); %>
+</div>

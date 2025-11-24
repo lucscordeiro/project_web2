@@ -16,3 +16,7 @@ Arquivos de ambiente (não envie senhas!)
 Arquivos do macOS
 
 .DS_Store
+
+# Logs e cache
+npm-debug.log
+*.log
