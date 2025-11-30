@@ -75,9 +75,11 @@ const studentController = {
     dashboard: async (req, res) => {
         const studentId = req.session.user.id; 
 
-        // Busca todos os cursos ativos
+        // Busca todos os cursos ativos E finalizados (para histórico)
         const allCourses = await Course.findAll({ 
-            where: { deletedAt: null }, 
+            where: { 
+                deletedAt: null 
+            }, 
             include: [{
                 model: Student, 
                 as: 'students',
@@ -115,9 +117,12 @@ const studentController = {
             c.isMatriculated && c.status === 'Em Andamento'
         );
 
-        // Histórico: cursos finalizados ou desmatriculados
+        // HISTÓRICO CORRIGIDO: apenas cursos finalizados ou que o aluno participou e foram encerrados
         const historico = cursosComStatus.filter(c => 
-            c.status === 'Finalizado' || c.isUnenrolled
+            // Curso finalizado E aluno estava matriculado
+            (c.status === 'Finalizado' && c.isMatriculated) ||
+            // Ou curso com status diferente mas aluno participou (matriculado) e curso foi "encerrado" (não está ativo)
+            (c.isMatriculated && !['Inscrições Abertas', 'Em Andamento', 'Pausado'].includes(c.status))
         );
 
         res.render('student/dashboard', { 

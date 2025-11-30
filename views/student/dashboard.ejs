@@ -149,12 +149,13 @@
         <h4 class="mb-3 text-secondary">
             <i class="bi bi-clock-history"></i> Histórico de Cursos
         </h4>
+        <p class="text-muted small">Cursos que você participou e foram finalizados ou encerrados pelo professor.</p>
     </div>
     
     <% if (historico.length === 0) { %>
         <div class="col-12">
             <div class="alert alert-info text-center">
-                Seu histórico de cursos aparecerá aqui.
+                Nenhum curso no histórico. Aqui aparecerão os cursos que você completou ou que foram encerrados.
             </div>
         </div>
     <% } %>
@@ -168,18 +169,21 @@
                 
                 <!-- Status no Histórico -->
                 <% 
-                let historicoBadge = 'secondary';
-                let historicoText = course.status;
-                let historicoIcon = 'bi-clock';
+                let historicoBadge = 'dark';
+                let historicoText = 'Finalizado';
+                let historicoIcon = 'bi-check-circle';
+                let historicoDesc = 'Curso concluído';
                 
                 if (course.status === 'Finalizado') {
                     historicoBadge = 'dark';
                     historicoText = 'Finalizado';
                     historicoIcon = 'bi-check-circle';
-                } else if (course.isUnenrolled) {
-                    historicoBadge = 'danger';
-                    historicoText = 'Desmatriculado';
-                    historicoIcon = 'bi-x-circle';
+                    historicoDesc = 'Curso concluído com sucesso';
+                } else {
+                    historicoBadge = 'secondary';
+                    historicoText = 'Encerrado';
+                    historicoIcon = 'bi-calendar-x';
+                    historicoDesc = 'Curso encerrado pelo professor';
                 }
                 %>
                 
@@ -189,21 +193,21 @@
                     </span>
                 </div>
                 
-                <% if (!course.isUnenrolled && course.status === 'Finalizado') { %>
+                <p class="small text-muted mb-2"><%= historicoDesc %></p>
+                
+                <% if (course.status === 'Finalizado') { %>
                     <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-outline-secondary">
-                        Revisar Conteúdo
+                        <i class="bi bi-eye"></i> Revisar Conteúdo
                     </a>
-                <% } else if (course.isUnenrolled) { %>
-                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-outline-info">
-                            Re-matricular
-                        </button>
-                    </form>
+                <% } else { %>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="bi bi-lock"></i> Conteúdo Indisponível
+                    </button>
                 <% } %>
                 
                 <% if (course.enrollmentDate) { %>
                     <small class="text-muted d-block mt-2">
-                        Data: <%= course.enrollmentDate.toLocaleDateString('pt-BR') %>
+                        Participação: <%= course.enrollmentDate.toLocaleDateString('pt-BR') %>
                     </small>
                 <% } %>
             </div>
