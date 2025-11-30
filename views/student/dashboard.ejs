@@ -1,41 +1,213 @@
 <h2>Dashboard do Aluno</h2>
 <p class="text-muted">Seu Status: <%= user.nome %> | Você pode se matricular em vários cursos.</p>
 
+<!-- Cursos com Inscrições Abertas -->
 <div class="row mt-4">
-    <% if (courses.length === 0) { %>
-        <div class="col-12"><div class="alert alert-info text-center">Nenhum curso disponível no momento.</div></div>
-    <% } %>
-    <% courses.forEach(course => { %>
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <h5 class="card-title"><%= course.nome %></h5>
-                <p class="card-text small text-muted"><%= course.descricao %></p>
-                <hr>
-                
-                <% if (course.isMatriculated) { %>
-                    <span class="badge badge-success mb-2"><i class="bi bi-check-circle-fill"></i> MATRICULADO</span>
-                    <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-primary ml-2">Ver Conteúdo</a>
-                    
-                    <form action="/aluno/desmatricular/<%= course.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja se desmatricular de <%= course.nome %>?');">
-                        <button type="submit" class="btn btn-sm btn-warning ml-2">Desmatricular</button>
-                    </form>
-                <% } else if (course.isUnenrolled) { %>
-                                        <span class="badge badge-danger mb-2"><i class="bi bi-x-circle-fill"></i> DESMATRICULADO</span>
-                    
-                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-info ml-2">Re-matricular</button>
-                    </form>
-                <% } else if (course.status === 'Inscrições Abertas') { %>
-                                        <span class="badge badge-info mb-2">Inscrições Abertas</span>
-                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-success ml-2">Matricular-se Agora</button>
-                    </form>
-                <% } else { %>
-                                        <span class="badge badge-secondary mb-2">Status: <%= course.status %></span>
-                <% } %>
-            </div>
-        </div>
-     </div>
-    <% }); %>
+    <div class="col-12">
+        <h4 class="mb-3 text-primary">
+            <i class="bi bi-door-open"></i> Inscrições Abertas
+        </h4>
+    </div>
+    
+    <% if (inscricoesAbertas.length === 0) { %>
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                Nenhum curso com inscrições abertas no momento.
+            </div>
+        </div>
+    <% } %>
+    
+    <% inscricoesAbertas.forEach(course => { %>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-primary">
+            <div class="card-body">
+                <h5 class="card-title"><%= course.nome %></h5>
+                <p class="card-text small text-muted"><%= course.descricao %></p>
+                <hr>
+                <span class="badge badge-info mb-2">Inscrições Abertas</span>
+                <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-success ml-2">
+                        Matricular-se Agora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% }); %>
+</div>
+
+<!-- Cursos Matriculados (Não Finalizados) -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h4 class="mb-3 text-success">
+            <i class="bi bi-check-circle"></i> Meus Cursos Matriculados
+        </h4>
+    </div>
+    
+    <% if (matriculados.length === 0) { %>
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                Você não está matriculado em nenhum curso ativo.
+            </div>
+        </div>
+    <% } %>
+    
+    <% matriculados.forEach(course => { %>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-success">
+            <div class="card-body">
+                <h5 class="card-title"><%= course.nome %></h5>
+                <p class="card-text small text-muted"><%= course.descricao %></p>
+                
+                <!-- Status do Curso -->
+                <% 
+                let statusBadge = 'secondary';
+                let statusText = course.status;
+                
+                if (course.status === 'Em Andamento') {
+                    statusBadge = 'primary';
+                    statusText = 'Em Andamento';
+                } else if (course.status === 'Pausado') {
+                    statusBadge = 'warning';
+                    statusText = 'Pausado';
+                }
+                %>
+                
+                <div class="mb-2">
+                    <span class="badge badge-<%= statusBadge %>">
+                        <%= statusText %>
+                    </span>
+                    <span class="badge badge-success ml-1">
+                        <i class="bi bi-check-circle-fill"></i> MATRICULADO
+                    </span>
+                </div>
+                
+                <div class="btn-group">
+                    <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-primary">
+                        Acessar Curso
+                    </a>
+                    <form action="/aluno/desmatricular/<%= course.id %>" method="POST" style="display:inline;" 
+                          onsubmit="return confirm('Tem certeza que deseja se desmatricular de <%= course.nome %>?');">
+                        <button type="submit" class="btn btn-sm btn-outline-warning ml-1">
+                            Desmatricular
+                        </button>
+                    </form>
+                </div>
+                
+                <% if (course.enrollmentDate) { %>
+                    <small class="text-muted d-block mt-2">
+                        Matriculado em: <%= course.enrollmentDate.toLocaleDateString('pt-BR') %>
+                    </small>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <% }); %>
+</div>
+
+<!-- Cursos em Andamento (Destaque) -->
+<% if (emAndamento.length > 0) { %>
+<div class="row mt-5">
+    <div class="col-12">
+        <h4 class="mb-3 text-warning">
+            <i class="bi bi-play-circle"></i> Cursos em Andamento
+        </h4>
+    </div>
+    
+    <% emAndamento.forEach(course => { %>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-warning">
+            <div class="card-body">
+                <h5 class="card-title text-warning">
+                    <i class="bi bi-play-fill"></i> <%= course.nome %>
+                </h5>
+                <p class="card-text small text-muted"><%= course.descricao %></p>
+                
+                <div class="mb-2">
+                    <span class="badge badge-warning">
+                        <i class="bi bi-clock"></i> EM ANDAMENTO
+                    </span>
+                </div>
+                
+                <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-warning">
+                    Continuar Estudos
+                </a>
+                
+                <small class="text-muted d-block mt-2">
+                    Último acesso: Em breve
+                </small>
+            </div>
+        </div>
+    </div>
+    <% }); %>
+</div>
+<% } %>
+
+<!-- Histórico de Cursos -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h4 class="mb-3 text-secondary">
+            <i class="bi bi-clock-history"></i> Histórico de Cursos
+        </h4>
+    </div>
+    
+    <% if (historico.length === 0) { %>
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                Seu histórico de cursos aparecerá aqui.
+            </div>
+        </div>
+    <% } %>
+    
+    <% historico.forEach(course => { %>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 border-secondary">
+            <div class="card-body">
+                <h5 class="card-title text-muted"><%= course.nome %></h5>
+                <p class="card-text small text-muted"><%= course.descricao %></p>
+                
+                <!-- Status no Histórico -->
+                <% 
+                let historicoBadge = 'secondary';
+                let historicoText = course.status;
+                let historicoIcon = 'bi-clock';
+                
+                if (course.status === 'Finalizado') {
+                    historicoBadge = 'dark';
+                    historicoText = 'Finalizado';
+                    historicoIcon = 'bi-check-circle';
+                } else if (course.isUnenrolled) {
+                    historicoBadge = 'danger';
+                    historicoText = 'Desmatriculado';
+                    historicoIcon = 'bi-x-circle';
+                }
+                %>
+                
+                <div class="mb-2">
+                    <span class="badge badge-<%= historicoBadge %>">
+                        <i class="bi <%= historicoIcon %>"></i> <%= historicoText %>
+                    </span>
+                </div>
+                
+                <% if (!course.isUnenrolled && course.status === 'Finalizado') { %>
+                    <a href="/aluno/curso/<%= course.id %>" class="btn btn-sm btn-outline-secondary">
+                        Revisar Conteúdo
+                    </a>
+                <% } else if (course.isUnenrolled) { %>
+                    <form action="/aluno/matricular/<%= course.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-info">
+                            Re-matricular
+                        </button>
+                    </form>
+                <% } %>
+                
+                <% if (course.enrollmentDate) { %>
+                    <small class="text-muted d-block mt-2">
+                        Data: <%= course.enrollmentDate.toLocaleDateString('pt-BR') %>
+                    </small>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <% }); %>
 </div>

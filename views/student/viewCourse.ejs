@@ -1,3 +1,14 @@
+<!-- Adicione isso no início do arquivo, antes de mostrar o conteúdo -->
+<% if (course.status === 'Finalizado') { %>
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Este curso foi finalizado. Você pode revisar o conteúdo, mas não receberá novas atualizações.
+    </div>
+<% } else if (course.status === 'Pausado') { %>
+    <div class="alert alert-warning">
+        <i class="bi bi-pause-circle"></i> Este curso está temporariamente pausado pelo professor.
+    </div>
+<% } %>
+
 <h2>Aulas e Materiais: <%= course.nome %></h2>
 <p class="text-muted">Status: <span class="badge badge-primary"><%= course.status %></span></p>
 
