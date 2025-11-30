@@ -117,7 +117,7 @@ const studentController = {
             c.isMatriculated && c.status === 'Em Andamento'
         );
 
-        // HISTÓRICO CORRIGIDO: apenas cursos finalizados ou que o aluno participou e foram encerrados
+        
         const historico = cursosComStatus.filter(c => 
             // Curso finalizado E aluno estava matriculado
             (c.status === 'Finalizado' && c.isMatriculated) ||
